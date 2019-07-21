@@ -40,7 +40,7 @@ function means(arrayToProcess) {
 	var mean = 0.0;
 
 	for (i = 0; i < arrayToProcess.length; i++) {
-		current_num = Math.round(arrayToProcess[i], 3);
+		current_num = +arrayToProcess[i].toFixed(3);
 		if (!isNaN(current_num)) {
 			counted++;
 			total = total + current_num;
@@ -389,8 +389,10 @@ function drawSummaryData(kmeandata, div_to_update, includeRainInNegative) {
 	var def_neg = 0;
 	var def_pos = 0;
 	for (var ac = 0; ac < kmeandata[0].length; ac++) {
-		if (includeRainInNegative && kmeandata[0][ac] < cutoff) {
-			def_neg++
+		if (includeRainInNegative) {
+			if (kmeandata[0][ac] < cutoff) {
+				def_neg++;
+			}
 		} else if (kmeandata[0][ac] < negative_cutoff) {
 			def_neg++;
 		}
@@ -416,8 +418,8 @@ function drawSummaryData(kmeandata, div_to_update, includeRainInNegative) {
 	data.addColumn('string', 'Cutoff Value');
 	data.addColumn('string', 'Number defined by cutoff');
 	data.addRows([
-		['Positive', kmeandata[1].length.toFixed(), mean_positive_droplets.toFixed(3), sd_positive.toFixed(3), ">" + cutoff.toFixed(3), def_pos.toFixed()],
-		['Negative', kmeandata[0].length.toFixed(), mean_negative_droplets.toFixed(3), sd_negative.toFixed(3), '<' + nc.toFixed(3), def_neg.toFixed()]
+		['Positive', kmeandata[1].length.toFixed(), mean_positive_droplets.toFixed(2), sd_positive.toFixed(2), ">" + cutoff.toFixed(2), def_pos.toFixed()],
+		['Negative', kmeandata[0].length.toFixed(), mean_negative_droplets.toFixed(2), sd_negative.toFixed(2), '<' + nc.toFixed(2), def_neg.toFixed()]
 	]);
 
 	var table = new google.visualization.Table(document.getElementById(div_to_update));
@@ -456,11 +458,14 @@ function call_concentration_with_cutoff(file_amplitudes, thecutoff, div_to_use, 
 		var file_amps = [];
 		var pos_count = 0;
 		for (j = 0; j < current_amplitudes.length; j++) {
-			if (includeRainInNegative && parseFloat(current_amplitudes[j]) < parseFloat(thecutoff)) {
-				neg_count++;
-			} else if (!includeRainInNegative && parseFloat(current_amplitudes[j] < parseFloat(negative_cutoff))) {
-				neg_count++;
-			}  else {
+			if (parseFloat(current_amplitudes[j]) < parseFloat(thecutoff)) {
+				if (includeRainInNegative) {
+					neg_count++;
+				} else {
+					if (parseFloat(current_amplitudes[j]) < parseFloat(negative_cutoff))
+						neg_count++;
+				}
+			} else {
 				if (parseFloat(current_amplitudes[j]) >= parseFloat(thecutoff)) {
 					pos_count++;
 				}
@@ -473,7 +478,7 @@ function call_concentration_with_cutoff(file_amplitudes, thecutoff, div_to_use, 
 
 		//console.debug("Neg count %d pos count %d total %d concentration %f", neg_count, current_amplitudes.length-neg_count, current_amplitudes.length,file_res );
 
-		data.addRow([filenames[i], (neg_count).toFixed(), (pos_count).toFixed(), a_total.toFixed(), file_res.toFixed(3), (current_amplitudes.length - a_total).toFixed()]);
+		data.addRow([filenames[i], (neg_count).toFixed(), (pos_count).toFixed(), a_total.toFixed(), file_res.toFixed(2), (current_amplitudes.length - a_total).toFixed()]);
 
 	}
 	//console.debug("Final %f",running_total);
@@ -484,7 +489,7 @@ function call_concentration_with_cutoff(file_amplitudes, thecutoff, div_to_use, 
 	else
 		vtemp_lower = parseFloat(negative_cutoff);
 
-	document.getElementById(div_result).innerHTML = "<h3>Using a cutoff Amplitude of &gt;" + vtemp.toFixed(3) + " and &lt; " + vtemp_lower.toFixed() + " the concentration is " + running_total.toFixed() + " copies per 20 &#956;l  </h3>"
+	document.getElementById(div_result).innerHTML = "<h3>Using a cutoff Amplitude of &gt;" + vtemp.toFixed(2) + " and &lt; " + vtemp_lower.toFixed(2) + " the concentration is " + running_total.toFixed(2) + " copies</h3>"
 
 	var table = new google.visualization.Table(document.getElementById(div_to_use));
 	table.draw(data);
