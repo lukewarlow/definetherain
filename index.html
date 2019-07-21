@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+		"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+
+	<title>Defining Rain</title>
+	<link rel="icon" type="image/png" href="/img/favicon.png" />
+
+	<meta http-equiv="content-type" content="text/html;charset=utf-8" />
+
+	<link rel="stylesheet" href="css/screen.css" type="text/css" media="screen, projection" />
+	<link rel="stylesheet" href="css/print.css" type="text/css" media="print" />
+	<link rel="stylesheet" href="css/style.css" type="text/css" media="screen, projection" />
+
+	<script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-migrate-1.1.1.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+
+	<!-- Hopefully set up Asynchronous file reads...
+    <script type='text\javascript' src="js/FileReader.js"></script>-->
+
+	<!-- The script containing most of the JavaScript code to carry out the clustering -->
+	<script type="text/javascript" src="js/clustervisualization.js"></script>
+
+	<link href='https://fonts.googleapis.com/css?family=Ubuntu' rel='stylesheet' type='text/css'>
+
+	<script>
+		$(function() {
+			// setup ul.tabs to work as tabs for each div directly under div.panes
+			//console.debug("called");
+			$( "#tabs" ).tabs();
+		});
+	</script>
+
+
+</head>
+
+<body>
+
+<div class="container">
+	<div id="header" class="span-12">
+		<h1>Defining The Rain</h1>
+	</div>
+	<div id="cloud" class="span-10"><img src="img/rain.png"></div>
+	<br/>
+	<h3> Automatically analysing BioRad's Digital Droplet PCR Output.</h3>
+	<br/>
+	<div id="tabs">
+		<ul>
+			<li><a href="#tabs-1">Raison d'&ecirc;tre</a></li>
+			<li><a href="#tabs-2">Analyse Your Data</a></li>
+			<li><a href="#tabs-3">How it works</a></li>
+		</ul>
+		<div id="tabs-1">
+			<p>Digital Droplet PCR works on the premise of dividing a sample into small compartments or droplets, each containing a single molecule of interest. The droplet's flouresence is examined. If the flouresence reaches a cutoff the droplet is then defined as positive, if not it is defined as negative. The concentration within the sample as a whole is then calculated using the proportion of positive and negative droplets and Poisson statistics.</p>
+			<img src="img/dropletfrag.jpg" width="500"/>
+			<p>  BioRad's Digital Droplet PCR machine has a problem with rain.  This is not H<sub>2</sub>O falling from clouds but droplets that are not clearly defined as negative or positive. The Figures above indicate the problem.</p><p> This web page provides a JavaScript implementation of a clustering algorithm that uses BioRad's Digital Droplet output. This code can run in your web browser and avoids the need to send data to remote servers. It automatically classifies the droplets into positive and negative responses allowing to more accurately call low copy numbers. The source code and some test data is freely available from <a href="https://github.com/lukewarlow/definetherain">a software repository on Github</a> under the MIT license.  </p>
+		</div>
+		<div id="tabs-2">
+			<p>Upload the positive control data to cluster and determine the cutoff to use, using the button below. After having calculated the cutoff values with a postive control the page will invite you to load a test sample.</p>
+			<form enctype="multipart/form-data" action="javascript://console.debug('success!');" method="post">
+				<input type="checkbox" id="includeRainInNegative" value="true"> Include rain in negative
+				<br />
+				<input type="file" id="files" name="files[]" multiple />
+				<output id="list"></output>
+				<output id="kmean1"></output>
+				<output id="kmean2"></output>
+				<output id="progress"></output>
+
+			</form>
+			<h2>Test Data</h2>
+			<p>  To see how the software works test positive Control Data for an albumin assay is available via the links below.
+			<h3>Positive Control test data, with high copy number.</h3>
+			<p>Place all four partitions in a common directory. Load the test data with the button above.</p>
+			<a href="/data/positive_control/Big%20test%206.12.12_E08_Amplitude.csv">Partition 1</a>
+			<a href="/data/positive_control/Big%20test%206.12.12_F08_Amplitude.csv">Partition 2</a>
+			<a href="/data/positive_control/Big%20test%206.12.12_G08_Amplitude.csv">Partition 3</a>
+			<a href="/data/positive_control/Big%20test%206.12.12_H08_Amplitude.csv">Partition 4</a>
+			<h3> Lower copy number test sample.</h3>
+			<p>Download the data and place in a common directory. Evaluate with the positive control data above.</p>
+			<p>
+				<a href="/data/test_data/Big%20test%206.12.12_E09_Amplitude.csv">Partition 1</a>
+				<a href="/data/test_data/Big%20test%206.12.12_F09_Amplitude.csv">Partition 2</a>
+				<a href="/data/test_data/Big%20test%206.12.12_G09_Amplitude.csv">Partition 3</a>
+				<a href="/data/test_data/Big%20test%206.12.12_H09_Amplitude.csv">Partition 4</a>
+			</p>
+
+			<span></span>
+
+			<div id="every_chart_div" style="width: 900px; height: 500px;"></div>
+			<div id="summary_positive_control" style="width:800px; height:150px;"></div>
+			<div id="positive_result" style="width:800px;height:100px;"></div>
+			<div id="positive_call" style="width=850px;height:300px;"></div>
+			<output id="count_using_cutoff"></output>
+			<div id="to_count_result" style="width:800px;height:50px;"></div>
+			<div id="to_count" style="width=850px;height:300px;"></div>
+			<div id="histograms"  class="span-25">
+				<div id="negative_count_0" class="span-10" style="height:300px;"></div>
+				<div id="positive_count_0" class="span-10" style="height:300px;"></div>
+				<div id="negative_count_1" class="span-10" style="height:300px;"></div>
+				<div id="positive_count_1" class="span-10" style="height:300px;"></div>
+				<div id="negative_count_2" class="span-10" style="height:300px;"></div>
+				<div id="positive_count_2" class="span-10" style="height:300px;"></div>
+				<div id="negative_count_3" class="span-10" style="height:300px;"></div>
+				<div id="positive_count_3" class="span-10" style="height:300px;"></div>
+				<div id="negative_count_4" class="span-10" style="height:300px;"></div>
+				<div id="positive_count_4" class="span-10" style="height:300px;"></div>
+				<div id="negative_count_5" class="span-10" style="height:300px;"></div>
+				<div id="positive_count_5" class="span-10" style="height:300px;"></div>
+				<div id="negative_count_6" class="span-10" style="height:300px;"></div>
+				<div id="positive_count_6" class="span-10" style="height:300px;"></div>
+				<div id="negative_count_7" class="span-10" style="height:300px;"></div>
+				<div id="positive_count_7" class="span-10" style="height:300px;"></div>
+				<div id="negative_count_8" class="span-10" style="height:300px;"></div>
+				<div id="positive_count_8" class="span-10" style="height:300px;"></div>
+				<div id="negative_count_9" class="span-10" style="height:300px;"></div>
+				<div id="positive_count_9" class="span-10" style="height:300px;"></div>
+				<div id="negative_count_10" class="span-10" style="height:300px;"></div>
+				<div id="positive_count_10" class="span-10" style="height:300px;"></div>
+			</div>
+
+
+			<script>
+				document.getElementById('files').addEventListener('change', handleFileSelect, false);
+				document.getElementById('count_using_cutoff').addEventListener('change', handleFileSelectCount, false);
+
+			</script>
+			<div id="clusterchart">
+				<script>
+
+
+				</script>
+			</div>
+		</div>
+		<div id="tabs-3">
+			Both Quantisoft and definetherain use the following equation to calculate the concentration. Where N<sub>neg</sub> is the number of negative droplets, N is the total number of droplets and V<sub>droplet</sub> is the Volume per Droplet (0.91 &#956;l).
+			<p>
+				<img src="img/equation.png"/>
+			</p>
+
+			<p>
+				How QuantiSoft defines a droplet as being either positive or negative is not explained in the user documentation. One of the objectives of definetherain is to clearly spell out how positive and negative droplets are defined.
+			</p>
+			<p> Definetherain uses a positive control to define two clusters using the k-means algorithm. The cluster with lowest mean is the negative cluster and correspondingly the cluster with the higher mean is the positive cluster. Cutoffs from this control are then used to validate subsequent measurements. Valid droplets are defined as positive when the droplet has an amplitude that is > positive mean- 3 times the standard deviation of the positive cluster and negative when the amplitude is < negative cluster's mean+3 times the standard deviation of the negative cluster. Non valid droplets or <emp>rain</emp> are not included in the calculations.
+			</p>
+			<p>
+				Working from the droplet amplitude files that are exported from the droplet analyser. The sample partitions are combined to make a final copy call per 20 &#956;l.
+			</p>
+		</div>
+		<div>
+
+</body>
+</html>
+
